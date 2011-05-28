@@ -11,43 +11,34 @@ namespace SiteBlocker
 {
     public partial class SiteBlockerForm : Form
     {
-        private delegate void UpdateTrayIconTextDelegate();
+        private static List<SiteBlock> SiteBlocks = new List<SiteBlock>();
+
         public delegate void AddSiteToTableDelegate(SiteBlock Value);
         public delegate void RemoveSiteFromTableDelegate(SiteBlock Value);
+        private delegate void UpdateTrayIconTextDelegate();
         public delegate void ShowBalloonTipDelegate(int timeout, String tipTitle, String tipText, ToolTipIcon tipIcon);
 
-        private static UpdateTrayIconTextDelegate UpdateTrayIconText;
-        private static ShowBalloonTipDelegate ShowBalloonTip;
         public static AddSiteToTableDelegate AddSiteToTable;
         public static RemoveSiteFromTableDelegate RemoveSiteFromTable;
-
-        private static List<SiteBlock> SiteBlocks = new List<SiteBlock>();
+        private static UpdateTrayIconTextDelegate UpdateTrayIconText;
+        private static ShowBalloonTipDelegate ShowBalloonTip;
 
         public SiteBlockerForm()
         {
             InitializeComponent();
             Settings.Default.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Default_PropertyChanged);
 
-            UpdateTrayIconText = UpdateTrayIconTextMethod;
-            UpdateNotifyAvailable();
             AddSiteToTable = AddSiteToTableMethod;
             RemoveSiteFromTable = RemoveSiteFromTableMethod;
+            UpdateTrayIconText = UpdateTrayIconTextMethod;
+            UpdateNotifyAvailable();
 
             ReadBlockList();
         }
 
-        private static void FlushDNS()
-        {
-            Process proc = new Process();
-            proc.StartInfo.FileName = "ipconfig";
-            proc.StartInfo.Arguments = "/flushdns";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.CreateNoWindow = true;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-            proc.WaitForExit();
-        }
-
+        /// <summary>
+        /// Reads the hosts file and attempts to parse each line as a SiteBlock, adding it to the SiteBlocks list.
+        /// </summary>
         private static void ReadBlockList()
         {
             TextReader reader = new StreamReader(System.Environment.GetEnvironmentVariable("windir") + "\\System32\\drivers\\etc\\hosts");
@@ -62,7 +53,9 @@ namespace SiteBlocker
                 }
                 try
                 {
-                    SiteBlock.Parse(CurrentLine);
+                    SiteBlock NewSiteBlock = SiteBlock.Parse(CurrentLine);
+                    SiteBlocks.Add(NewSiteBlock);
+                    AddSiteToTable(NewSiteBlock);
                 }
                 catch
                 {
@@ -71,6 +64,9 @@ namespace SiteBlocker
             }
         }
 
+        /// <summary>
+        /// Writes the SiteBlocks list in the proper format into the hosts file.
+        /// </summary>
         private static void WriteBlockList()
         {
             FlushDNS();
@@ -86,6 +82,21 @@ namespace SiteBlocker
             UpdateTrayIconText();
         }
 
+        /// <summary>
+        /// Flushes Window's DNS Cache.
+        /// </summary>
+        private static void FlushDNS()
+        {
+            Process proc = new Process();
+            proc.StartInfo.FileName = "ipconfig";
+            proc.StartInfo.Arguments = "/flushdns";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.Start();
+            proc.WaitForExit();
+        }
+
         private static void OpenHostsFile()
         {
             Process proc = new Process();
@@ -97,154 +108,15 @@ namespace SiteBlocker
             proc.Start();
         }
 
-        public class SiteBlock
+        /// <summary>
+        /// Unblocks TargetSite and removes it from the UI.
+        /// </summary>
+        public static void Unblock(SiteBlock TargetSite)
         {
-            private String Site;
-            private IPAddress Address;
-            private DateTime EndTime;
-            private Timer BlockTimer;
-            private Boolean Timed;
-
-            public Label SiteLabel;
-            public Label TimeLabel;
-            public Button RemoveButton;
-
-            // not timed
-            public SiteBlock(String Site, IPAddress Address)
-            {
-                this.Timed = false;
-                this.Site = Site;
-                this.Address = Address;
-                InitializeComponents();
-
-                SiteBlocks.Add(this);
-                AddSiteToTable(this);
-            }
-
-            // timed
-            public SiteBlock(String Site, IPAddress Address, DateTime EndTime)
-            {
-                this.Timed = true;
-                this.Site = Site;
-                this.Address = Address;
-                this.EndTime = EndTime;
-                InitializeComponents();
-                InitializeTimer();
-                RemoveButton.Enabled = false;
-
-                SiteBlocks.Add(this);
-                AddSiteToTable(this);
-            }
-
-            private void InitializeComponents()
-            {
-                SiteLabel = new Label();
-                TimeLabel = new Label();
-                RemoveButton = new Button();
-
-                // Site Label
-                SiteLabel.AutoSize = true;
-                SiteLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-                SiteLabel.TabIndex = 1;
-                SiteLabel.Text = Site;
-                SiteLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-
-                // TimeLabel
-                TimeLabel.AutoSize = true;
-                TimeLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-                TimeLabel.TabIndex = 2;
-                TimeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-                TimeLabel.Text = Timed ? (EndTime - DateTime.Now).ToString().Split(new Char[] { '.' })[0] : "routed to " + Address.ToString();
-
-                // RemoveButton
-                RemoveButton.Dock = System.Windows.Forms.DockStyle.Fill;
-                RemoveButton.TabIndex = 3;
-                RemoveButton.Text = "remove";
-                RemoveButton.UseVisualStyleBackColor = true;
-                RemoveButton.Click += delegate(object removeSender, EventArgs eRemove)
-                {
-                    if (SiteBlocks.Contains(this))
-                    {
-                        if (Timed)
-                        {
-                            //new PaymentForm(this).Show();
-                            RemoveSiteFromTable(this);
-                        }
-                        else
-                        {
-                            Unblock();
-                            RemoveSiteFromTable(this);
-                        }
-                    }
-                    else
-                    {
-                        RemoveSiteFromTable(this);
-                    }
-                };
-            }
-
-            private void InitializeTimer()
-            {
-                BlockTimer = new Timer();
-                BlockTimer.Interval = 1000;
-                BlockTimer.Tick += delegate(object tickSender, EventArgs eTick)
-                {
-                    if (DateTime.Compare(EndTime, DateTime.Now) < 0)
-                    {
-                        Unblock();
-                        RemoveButton.Enabled = true;
-                        BlockTimer.Stop();
-                        BlockTimer.Dispose();
-                        return;
-                    }
-                    TimeLabel.Text = (EndTime - DateTime.Now).ToString().Split(new Char[] { '.' })[0];
-                };
-                BlockTimer.Start();
-            }
-
-            public void Unblock()
-            {
-                SiteBlocks.Remove(this);
-                WriteBlockList();
-                TimeLabel.Text = "available";
-                ShowBalloonTip(0, "", Site + " is available", ToolTipIcon.None);
-            }
-
-            public override String ToString()
-            {
-                String result = Address.ToString() + "\t" + Site;
-                if (Timed)
-                {
-                    result += "#" + EndTime.ToString();
-                }
-                return result;
-            }
-
-            public static SiteBlock Parse(String Input)
-            {
-                String[] FirstSplit;
-                String[] SecondSplit;
-
-                String NewSite;
-                IPAddress NewAddress = null;
-                DateTime NewEndTime = new DateTime();
-
-                FirstSplit = Input.Split(new String[] { "\t", " ", "\r" }, 2, StringSplitOptions.RemoveEmptyEntries);
-                if (FirstSplit.Length > 0 && IPAddress.TryParse(FirstSplit[0], out NewAddress))
-                {
-                    SecondSplit = FirstSplit[1].Split(new String[] { "#" }, 2, StringSplitOptions.RemoveEmptyEntries);
-                    NewSite = SecondSplit[0];
-                    if (SecondSplit.Length > 1 && DateTime.TryParse(SecondSplit[1], out NewEndTime))
-                    {
-                        return new SiteBlock(NewSite, NewAddress, NewEndTime);
-                    }
-                    else
-                    {
-                        return new SiteBlock(NewSite, NewAddress);
-                    }
-                }
-                throw new Exception();
-            }
+            SiteBlocks.Remove(TargetSite);
+            RemoveSiteFromTable(TargetSite);
+            WriteBlockList();
+            ShowBalloonTip(0, "", TargetSite.Name() + " is available", ToolTipIcon.None);
         }
 
         //-------------------------------- helper methods ------------------------------------------
@@ -282,7 +154,9 @@ namespace SiteBlocker
             EndTimeSpinner.Value = DateTime.Today.AddHours(EndTimeSpinner.Value.Hour).
                                                   AddMinutes(EndTimeSpinner.Value.Minute).
                                                   AddSeconds(EndTimeSpinner.Value.Second);
-            SiteBlock NewSiteBlock = new SiteBlock(SiteTextBox.Text, new IPAddress(new byte[] { 0, 0, 0, 0 }), EndTimeSpinner.Value);
+            SiteBlock NewSiteBlock = new TimedSiteBlock(SiteTextBox.Text, new IPAddress(new byte[] { 0, 0, 0, 0 }), EndTimeSpinner.Value);
+            SiteBlocks.Add(NewSiteBlock);
+            AddSiteToTable(NewSiteBlock);
             WriteBlockList();
         }
 
