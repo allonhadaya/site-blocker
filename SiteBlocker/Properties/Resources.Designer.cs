@@ -61,7 +61,7 @@ namespace SiteBlocker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.allonhadaya.com/siteblocker/payment/failed.
+        ///   Looks up a localized string similar to http://dl.dropbox.com/u/3256341/payment/failed/page.html.
         /// </summary>
         internal static string PaymentFailedUrl {
             get {
@@ -70,7 +70,7 @@ namespace SiteBlocker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.allonhadaya.com/siteblocker/payment/passed.
+        ///   Looks up a localized string similar to http://dl.dropbox.com/u/3256341/payment/passed/page.html.
         /// </summary>
         internal static string PaymentPassedUrl {
             get {
@@ -79,7 +79,7 @@ namespace SiteBlocker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.allonhadaya.com/siteblocker/payment.
+        ///   Looks up a localized string similar to http://dl.dropbox.com/u/3256341/payment/page.html.
         /// </summary>
         internal static string PaymentUrl {
             get {

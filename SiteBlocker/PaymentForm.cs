@@ -28,9 +28,13 @@ namespace SiteBlocker
         /// <param name="TargetSite">Site to be unblocked when payment is complete.</param>
         public void PayFor(SiteBlock TargetSite)
         {
-            Show();
-            this.TargetSite = TargetSite;
-            PaymentBrowser.Url = PaymentUri;
+            if (!Visible)
+            {
+                Show();
+                this.TargetSite = TargetSite;
+                PaymentBrowser.Url = PaymentUri;
+            }
+            BringToFront();
         }
 
         private void PaymentBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
@@ -38,6 +42,7 @@ namespace SiteBlocker
             if (e.Url.Equals(PaymentPassedUri))
             {
                 TargetSite.Unblock();
+                Hide();
             }
             else if (e.Url.Equals(PaymentFailedUri))
             {
