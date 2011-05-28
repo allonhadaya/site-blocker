@@ -10,11 +10,7 @@ namespace SiteBlocker
         private static Uri PaymentPassedUri = new Uri(Properties.Resources.PaymentPassedUrl);
         private static Uri PaymentFailedUri = new Uri(Properties.Resources.PaymentFailedUrl);
 
-        private static PaymentForm SINGLETON = new PaymentForm();
-        public static PaymentForm Singleton()
-        {
-            return SINGLETON;
-        }
+        private static readonly PaymentForm Singleton = new PaymentForm();
 
         private PaymentForm()
         {
@@ -26,15 +22,15 @@ namespace SiteBlocker
         /// Unblocks a SiteBlock early if user completes payment.
         /// </summary>
         /// <param name="TargetSite">Site to be unblocked when payment is complete.</param>
-        public void PayFor(SiteBlock TargetSite)
+        public static void PayFor(SiteBlock TargetSite)
         {
-            if (!Visible)
+            if (!Singleton.Visible)
             {
-                Show();
-                this.TargetSite = TargetSite;
-                PaymentBrowser.Url = PaymentUri;
+                Singleton.Show();
+                Singleton.TargetSite = TargetSite;
+                Singleton.PaymentBrowser.Url = PaymentUri;
             }
-            BringToFront();
+            Singleton.BringToFront();
         }
 
         private void PaymentBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)

@@ -96,7 +96,7 @@ namespace SiteBlocker
 
             RemoveButton.Click += delegate(object removeSender, EventArgs eRemove)
             {
-                PaymentForm.Singleton().PayFor(this);
+                PaymentForm.PayFor(this);
             };
 
             BlockTimer = new Timer();
