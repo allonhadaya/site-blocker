@@ -1,224 +1,93 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
 using System.Windows.Forms;
-using SiteBlocker.Properties;
 
 namespace SiteBlocker
 {
     public partial class SiteBlockerForm : Form
     {
-        private static List<SiteBlock> SiteBlocks = new List<SiteBlock>();
-
-        public delegate void AddSiteToTableDelegate(SiteBlock Value);
-        public delegate void RemoveSiteFromTableDelegate(SiteBlock Value);
-        private delegate void UpdateTrayIconTextDelegate();
-        public delegate void ShowBalloonTipDelegate(int timeout, String tipTitle, String tipText, ToolTipIcon tipIcon);
-
-        public static AddSiteToTableDelegate AddSiteToTable;
-        public static RemoveSiteFromTableDelegate RemoveSiteFromTable;
-        private static UpdateTrayIconTextDelegate UpdateTrayIconText;
-        private static ShowBalloonTipDelegate ShowBalloonTip;
-
         public SiteBlockerForm()
         {
             InitializeComponent();
-            Settings.Default.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(Default_PropertyChanged);
 
-            AddSiteToTable = AddSiteToTableMethod;
-            RemoveSiteFromTable = RemoveSiteFromTableMethod;
-            UpdateTrayIconText = UpdateTrayIconTextMethod;
-            UpdateNotifyAvailable();
-
-            ReadBlockList();
+            Host.AddToUI = AddToUI;
+            Host.RemoveFromUI = RemoveFromUI;
         }
 
-        /// <summary>
-        /// Reads the hosts file and attempts to parse each line as a SiteBlock, adding it to the SiteBlocks list.
-        /// </summary>
-        private static void ReadBlockList()
+        private Control[] AddToUI(Host host)
         {
-            TextReader reader = new StreamReader(System.Environment.GetEnvironmentVariable("windir") + "\\System32\\drivers\\etc\\hosts");
-            String[] HostsFile = reader.ReadToEnd().Split('\n');
-            reader.Close();
+            var siteLabel = new Label() {
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                TabIndex = 1,
+                Text = host.HOST,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            };
+            var timeLabel = new Label() {
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                TabIndex = 2,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            };
+            var removeButton = new Button() {
+                Dock = DockStyle.Fill,
+                TabIndex = 3,
+                Text = "remove",
+                UseVisualStyleBackColor = true
+            };
 
-            foreach (String CurrentLine in HostsFile)
-            {
-                if (CurrentLine.StartsWith("#") || CurrentLine.StartsWith("\r"))
-                {
-                    continue;
-                }
-                try
-                {
-                    SiteBlock NewSiteBlock = SiteBlock.Parse(CurrentLine);
-                    SiteBlocks.Add(NewSiteBlock);
-                    AddSiteToTable(NewSiteBlock);
-                }
-                catch
-                {
-                    // line not parsed
-                }
+            if (host.END_TIME.HasValue) {
+                timeLabel.Text = host.END_TIME.ToString();
+
+                var t = new Timer() {
+                    Enabled = true,
+                    Interval = 1000
+                };
+                
+                t.Tick += (sender, e) => {
+                    if ((host.END_TIME.Value - DateTime.Now).TotalSeconds > 0) {
+                        timeLabel.Text = TimeSpan.Parse(timeLabel.Text).Subtract(new TimeSpan(0, 0, 1)).ToString();
+                        t.Dispose();
+                    }
+                    else {
+                        host.Unblock();
+                    }
+                };
+
+                removeButton.Click += (sender, e) => {
+                    host.Unblock();
+                };
+            } else {
+                timeLabel.Text = "routed to " + host.REDIRECT;
+
+                removeButton.Click += (sender, e) => {
+                    host.Unblock();
+                };
             }
-        }
 
-        /// <summary>
-        /// Writes the SiteBlocks list in the proper format into the hosts file.
-        /// </summary>
-        private static void WriteBlockList()
-        {
-            FlushDNS();
-
-            TextWriter writer = new StreamWriter(System.Environment.GetEnvironmentVariable("windir") + "\\System32\\drivers\\etc\\hosts");
-            writer.WriteLine("# Site Blocker by Allon Hadaya");
-            foreach (SiteBlock CurrentBlock in SiteBlocks)
-            {
-                writer.WriteLine(CurrentBlock.ToString());
-            }
-            writer.Close();
-
-            UpdateTrayIconText();
-        }
-
-        /// <summary>
-        /// Flushes Window's DNS Cache.
-        /// </summary>
-        private static void FlushDNS()
-        {
-            Process proc = new Process();
-            proc.StartInfo.FileName = "ipconfig";
-            proc.StartInfo.Arguments = "/flushdns";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.CreateNoWindow = true;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-            proc.WaitForExit();
-        }
-
-        private static void OpenHostsFile()
-        {
-            Process proc = new Process();
-            proc.StartInfo.FileName = System.Environment.GetEnvironmentVariable("windir") + "\\System32\\notepad";
-            proc.StartInfo.Arguments = System.Environment.GetEnvironmentVariable("windir") + "\\System32\\drivers\\etc\\hosts";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.CreateNoWindow = true;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-        }
-
-        /// <summary>
-        /// Unblocks TargetSite and removes it from the UI.
-        /// </summary>
-        public static void Unblock(SiteBlock TargetSite)
-        {
-            SiteBlocks.Remove(TargetSite);
-            RemoveSiteFromTable(TargetSite);
-            WriteBlockList();
-            ShowBalloonTip(0, "", TargetSite.Name() + " is available", ToolTipIcon.None);
-        }
-
-        //-------------------------------- helper methods ------------------------------------------
-
-        private void AddSiteToTableMethod(SiteBlock NewSiteBlock)
-        {
-            MainTablePanel.RowCount += 1;
+            MainTablePanel.RowCount++;
             MainTablePanel.RowStyles.Add(new RowStyle());
-            int NewSiteIndex = MainTablePanel.RowCount - 1;
+            MainTablePanel.Controls.Add(siteLabel, 0, -1);
+            MainTablePanel.Controls.Add(timeLabel, 1, -1);
+            MainTablePanel.Controls.Add(removeButton, 2, -1);
 
-            MainTablePanel.Controls.Add(NewSiteBlock.SiteLabel, 0, NewSiteIndex);
-            MainTablePanel.Controls.Add(NewSiteBlock.TimeLabel, 1, NewSiteIndex);
-            MainTablePanel.Controls.Add(NewSiteBlock.RemoveButton, 2, NewSiteIndex);
+            return new Control[] { siteLabel, timeLabel, removeButton };
         }
 
-        private void RemoveSiteFromTableMethod(SiteBlock SiteBlockToRemove)
+        private void RemoveFromUI(Control[] controls)
         {
-            MainTablePanel.Controls.Remove(SiteBlockToRemove.SiteLabel);
-            MainTablePanel.Controls.Remove(SiteBlockToRemove.TimeLabel);
-            MainTablePanel.Controls.Remove(SiteBlockToRemove.RemoveButton);
-        }
-
-        private void UpdateTrayIconTextMethod()
-        {
-            String TrayText = "Site Blocker";
-            foreach (SiteBlock CurrentSite in SiteBlocks)
-            {
-                TrayText += "\n" + CurrentSite.SiteLabel.Text;
-            }
-            ApplicationTrayIcon.Text = (TrayText.Length >= 64) ? (TrayText.Substring(0, 60) + "...") : (TrayText);
+            foreach (var c in controls) {
+                MainTablePanel.Controls.Remove(c);
+                c.Dispose();
+            };
         }
 
         private void AddButton_Click(object sender, EventArgs e)
         {
-            EndTimeSpinner.Value = DateTime.Today.AddHours(EndTimeSpinner.Value.Hour).
-                                                  AddMinutes(EndTimeSpinner.Value.Minute).
-                                                  AddSeconds(EndTimeSpinner.Value.Second);
-            SiteBlock NewSiteBlock = new TimedSiteBlock(SiteTextBox.Text, new IPAddress(new byte[] { 0, 0, 0, 0 }), EndTimeSpinner.Value);
-            SiteBlocks.Add(NewSiteBlock);
-            AddSiteToTable(NewSiteBlock);
-            WriteBlockList();
-        }
-
-        private void SiteBlockerForm_Resize(object sender, EventArgs e)
-        {
-            if (FormWindowState.Minimized == WindowState)
-            {
-                Hide();
-            }
-        }
-
-        private void ApplicationTrayIcon_DoubleClick(object sender, EventArgs e)
-        {
-            Show();
-            WindowState = FormWindowState.Normal;
-        }
-
-        private void RestoreToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Show();
-            WindowState = FormWindowState.Normal;
-        }
-
-        private void CloseApplicationToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            new SettingsForm().Show();
-        }
-
-        private void hostsFileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenHostsFile();
-        }
-
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            new AboutBox().Show();
-        }
-
-        private void Default_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName.Equals("NotifyAvailable"))
-            {
-                UpdateNotifyAvailable();
-            }
-            Settings.Default.Save();
-        }
-
-        private void UpdateNotifyAvailable()
-        {
-            ShowBalloonTip = Settings.Default.NotifyAvailable ?
-                 ((ShowBalloonTipDelegate)ApplicationTrayIcon.ShowBalloonTip) :
-                 delegate(int timeout, String tipTitle, String tipText, ToolTipIcon tipIcon) { /*nothing*/ };
+            EndTimeSpinner.Value = DateTime.Today
+                .AddHours(EndTimeSpinner.Value.Hour)
+                .AddMinutes(EndTimeSpinner.Value.Minute)
+                .AddSeconds(EndTimeSpinner.Value.Second);
+            new Host(SiteTextBox.Text, "0.0.0.0", EndTimeSpinner.Value).Block();
         }
     }
 }

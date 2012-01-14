@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SiteBlockerForm));
             this.MainTablePanel = new System.Windows.Forms.TableLayoutPanel();
             this.EndTimeSpinner = new System.Windows.Forms.DateTimePicker();
@@ -37,22 +36,13 @@
             this.SiteLabel = new System.Windows.Forms.Label();
             this.TimeLabel = new System.Windows.Forms.Label();
             this.ActionLabel = new System.Windows.Forms.Label();
-            this.ApplicationTrayIcon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.ApplicationTrayMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.RestoreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CloseApplicationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ApplicationMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hostsFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RootTablePanel = new System.Windows.Forms.TableLayoutPanel();
             this.MainTablePanel.SuspendLayout();
-            this.ApplicationTrayMenu.SuspendLayout();
-            this.ApplicationMenuStrip.SuspendLayout();
             this.RootTablePanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -70,7 +60,7 @@
             this.MainTablePanel.Controls.Add(this.TimeLabel, 1, 0);
             this.MainTablePanel.Controls.Add(this.ActionLabel, 2, 0);
             this.MainTablePanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.MainTablePanel.Location = new System.Drawing.Point(3, 27);
+            this.MainTablePanel.Location = new System.Drawing.Point(3, 3);
             this.MainTablePanel.Name = "MainTablePanel";
             this.MainTablePanel.RowCount = 2;
             this.MainTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -141,52 +131,8 @@
             this.ActionLabel.Text = "Action";
             this.ActionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // ApplicationTrayIcon
-            // 
-            this.ApplicationTrayIcon.ContextMenuStrip = this.ApplicationTrayMenu;
-            this.ApplicationTrayIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("ApplicationTrayIcon.Icon")));
-            this.ApplicationTrayIcon.Text = "Site Blocker";
-            this.ApplicationTrayIcon.Visible = true;
-            this.ApplicationTrayIcon.DoubleClick += new System.EventHandler(this.ApplicationTrayIcon_DoubleClick);
-            // 
-            // ApplicationTrayMenu
-            // 
-            this.ApplicationTrayMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.RestoreToolStripMenuItem,
-            this.CloseApplicationToolStripMenuItem});
-            this.ApplicationTrayMenu.Name = "ApplicationTrayMenu";
-            this.ApplicationTrayMenu.Size = new System.Drawing.Size(168, 48);
-            // 
-            // RestoreToolStripMenuItem
-            // 
-            this.RestoreToolStripMenuItem.Name = "RestoreToolStripMenuItem";
-            this.RestoreToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
-            this.RestoreToolStripMenuItem.Text = "Restore";
-            this.RestoreToolStripMenuItem.Click += new System.EventHandler(this.RestoreToolStripMenuItem_Click);
-            // 
-            // CloseApplicationToolStripMenuItem
-            // 
-            this.CloseApplicationToolStripMenuItem.Name = "CloseApplicationToolStripMenuItem";
-            this.CloseApplicationToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
-            this.CloseApplicationToolStripMenuItem.Text = "Close Application";
-            this.CloseApplicationToolStripMenuItem.Click += new System.EventHandler(this.CloseApplicationToolStripMenuItem_Click);
-            // 
-            // ApplicationMenuStrip
-            // 
-            this.ApplicationMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
-            this.toolsToolStripMenuItem,
-            this.helpToolStripMenuItem});
-            this.ApplicationMenuStrip.Location = new System.Drawing.Point(0, 0);
-            this.ApplicationMenuStrip.Name = "ApplicationMenuStrip";
-            this.ApplicationMenuStrip.Size = new System.Drawing.Size(471, 24);
-            this.ApplicationMenuStrip.TabIndex = 1;
-            this.ApplicationMenuStrip.Text = "menuStrip1";
-            // 
             // fileToolStripMenuItem
             // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
@@ -194,15 +140,11 @@
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // toolsToolStripMenuItem
             // 
-            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.optionsToolStripMenuItem,
-            this.hostsFileToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.toolsToolStripMenuItem.Text = "&Tools";
@@ -210,38 +152,20 @@
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.optionsToolStripMenuItem.Text = "&Options";
-            this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
             // 
             // hostsFileToolStripMenuItem
             // 
             this.hostsFileToolStripMenuItem.Name = "hostsFileToolStripMenuItem";
-            this.hostsFileToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.hostsFileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.hostsFileToolStripMenuItem.Text = "&Hosts File";
-            this.hostsFileToolStripMenuItem.Click += new System.EventHandler(this.hostsFileToolStripMenuItem_Click);
-            // 
-            // helpToolStripMenuItem
-            // 
-            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.aboutToolStripMenuItem});
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "&Help";
-            // 
-            // aboutToolStripMenuItem
-            // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
-            this.aboutToolStripMenuItem.Text = "&About...";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // RootTablePanel
             // 
             this.RootTablePanel.AutoSize = true;
             this.RootTablePanel.ColumnCount = 1;
             this.RootTablePanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.RootTablePanel.Controls.Add(this.ApplicationMenuStrip, 0, 0);
             this.RootTablePanel.Controls.Add(this.MainTablePanel, 0, 1);
             this.RootTablePanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.RootTablePanel.Location = new System.Drawing.Point(0, 0);
@@ -263,12 +187,8 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "SiteBlockerForm";
             this.Text = "SiteBlocker";
-            this.Resize += new System.EventHandler(this.SiteBlockerForm_Resize);
             this.MainTablePanel.ResumeLayout(false);
             this.MainTablePanel.PerformLayout();
-            this.ApplicationTrayMenu.ResumeLayout(false);
-            this.ApplicationMenuStrip.ResumeLayout(false);
-            this.ApplicationMenuStrip.PerformLayout();
             this.RootTablePanel.ResumeLayout(false);
             this.RootTablePanel.PerformLayout();
             this.ResumeLayout(false);
@@ -285,17 +205,10 @@
         private System.Windows.Forms.Label TimeLabel;
         private System.Windows.Forms.Label ActionLabel;
         private System.Windows.Forms.DateTimePicker EndTimeSpinner;
-        private System.Windows.Forms.NotifyIcon ApplicationTrayIcon;
-        private System.Windows.Forms.ContextMenuStrip ApplicationTrayMenu;
-        private System.Windows.Forms.ToolStripMenuItem RestoreToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem CloseApplicationToolStripMenuItem;
-        private System.Windows.Forms.MenuStrip ApplicationMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.TableLayoutPanel RootTablePanel;
         private System.Windows.Forms.ToolStripMenuItem hostsFileToolStripMenuItem;
 
